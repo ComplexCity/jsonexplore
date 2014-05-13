@@ -4,13 +4,15 @@ class ObjTextPrinter:
 		for i in range(0, obj.level):
 			shift += "\t"
 		s = shift
-		s += "|- %s: "% obj.name
-#		TODO: nbitems to save in a special list while loading
+		s += "|- %s"% obj.name
+		if obj.is_optional():
+			s+= " (Optional: only %d value(s) over the %d items)"% (obj.nb_times_it_exists, obj.nb_times_it_is_expected)
+		s += ": "
 		if obj.type == "dict" or obj.type == "list":
 			if obj.type == "dict":
 				s += "a Dict composed of:"
 			elif obj.type == "list":
-				s += "a List composed of:"
+				s += "a List composed of %d items like:"% obj.nb_items
 			for child in obj.childs:
 				s += "\n"
 				s += self.render(child, with_values)

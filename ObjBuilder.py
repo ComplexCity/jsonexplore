@@ -4,14 +4,23 @@ import json
 class ObjBuilder:
 	my_types = {}
 	my_values = {}
+	my_nb_items = {}
+	my_paths = {}
 	
 	def __init__(self, json_file):
 		f = open(json_file, 'r')
 		self.loaded_json = json.load(f)
 		f.close()
+		
+	def count_path(self, path):
+		if path in self.my_paths:
+			self.my_paths[path] += 1
+		else:
+			self.my_paths[path] = 1
 
 	def load_simple(self, path, s):
 		self.my_types[path] = type(s).__name__
+		self.count_path(path)
 		if path not in self.my_values:
 			self.my_values[path] = {s:1}
 		else:
@@ -36,6 +45,8 @@ class ObjBuilder:
 		
 	def load_list(self, path, l):
 		self.my_types[path] = "list"
+		self.count_path(path)
+		self.my_nb_items[path] = len(l)
 		child_path = path + "[x]/"
 		res = self.get_list_type(l, path)
 		if res <> None:
@@ -49,6 +60,7 @@ class ObjBuilder:
 		
 	def load_dict(self, path, d):
 		self.my_types[path] = "dict"
+		self.count_path(path)
 		for key, value in d.iteritems():
 			child_path = path + key + "/"
 			if isinstance(value, dict):
@@ -62,21 +74,32 @@ class ObjBuilder:
 		path = "./"
 		self.load_dict(path, self.loaded_json)
 		sorted_keys = sorted(self.my_types.keys())
-#		for key in sorted_keys:
-#			print key
-#			print "%s (%s)"% (key, my_types[key])
-#		print "======================================"
-#		print my_values
-
 		my_parent = {}
 		my_obj = {}
 		for key in sorted_keys:
 			my_parent[key] = 0
 			obj = Obj(key)
 			obj.type = self.my_types[key]
+			
+			if obj.type == "list":
+				obj.nb_items = self.my_nb_items[key]
+
+			obj.nb_times_it_exists = self.my_paths[key]
+				
 			if key in self.my_values:
 				obj.values = self.my_values[key]
 			my_obj[key] = obj
+		
+		for key in sorted_keys:
+			parts = key.split("[x]/")
+			parts_len = len(parts)
+			if parts_len > 1:
+				path = parts[0]
+				nb_items = my_obj[path].nb_items
+				for i in range(1, parts_len-1):
+					path += "[x]/%s"% parts[i]
+					nb_items *= my_obj[path].nb_items
+				my_obj[key].nb_times_it_is_expected = nb_items
 			
 		for i in range(0, len(sorted_keys)):
 			needle = sorted_keys[i]
@@ -89,7 +112,7 @@ class ObjBuilder:
 			parent_index = sorted_keys[my_parent[child_index]]
 			parent = my_obj[parent_index]
 			parent.add_child(child)
-
+			
 		return my_obj['./']
 		
 
