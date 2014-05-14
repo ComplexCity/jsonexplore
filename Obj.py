@@ -11,10 +11,10 @@ class Obj:
 		self.nb_times_it_is_expected = 1
 		self.nb_items = 0
 		self.nb_items_min = None
-		self.childs = []
+		self.children = []
 		
 	def add_child(self, child):
-		self.childs.append(child)
+		self.children.append(child)
 	
 	def is_optional(self):
 		if self.nb_times_it_exists <> self.nb_times_it_is_expected:

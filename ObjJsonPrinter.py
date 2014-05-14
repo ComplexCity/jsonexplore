@@ -21,16 +21,16 @@ class ObjJsonPrinter:
 			else:
 				json['list_size'] = "%d"% obj.nb_items
 				
-		if len(obj.childs) > 0:
-			if len(obj.childs) == 1 and obj.childs[0].name == "[x]":
-				childs_array = obj.childs[0].childs
+		if len(obj.children) > 0:
+			if len(obj.children) == 1 and obj.children[0].name == "[x]":
+				children_array = obj.children[0].children
 			else:
-				childs_array = obj.childs
-			childs_json = []
-			for child in childs_array:
+				children_array = obj.children
+			children_json = []
+			for child in children_array:
 				child_json = self.render(child, with_values)
 				if child_json <> None:
-					childs_json.append(child_json)
-			json['childs'] = childs_json
+					children_json.append(child_json)
+			json['children'] = children_json
 		
 		return json

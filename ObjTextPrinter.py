@@ -18,7 +18,7 @@ class ObjTextPrinter:
 				else:
 					s += "%d"% obj.nb_items
 				s += " items like:"
-			for child in obj.childs:
+			for child in obj.children:
 				s += "\n"
 				s += self.render(child, with_values)
 		else:

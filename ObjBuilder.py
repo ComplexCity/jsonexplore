@@ -41,7 +41,7 @@ class ObjBuilder:
 				res = type(l[0]).__name__
 			for item in l:
 				if type(item).__name__ <> res:
-					raise "Different kinds od items in list %s"% path
+					raise "Different kinds of items in list %s"% path
 		return res
 		
 	def load_list(self, path, l):
