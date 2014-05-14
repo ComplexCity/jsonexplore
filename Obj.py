@@ -9,7 +9,8 @@ class Obj:
 		self.values = {}
 		self.nb_times_it_exits = 0
 		self.nb_times_it_is_expected = 1
-		self.nb_items = 1
+		self.nb_items = 0
+		self.nb_items_min = None
 		self.childs = []
 		
 	def add_child(self, child):

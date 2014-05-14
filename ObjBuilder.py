@@ -5,6 +5,7 @@ class ObjBuilder:
 	my_types = {}
 	my_values = {}
 	my_nb_items = {}
+	my_nb_items_min = {}
 	my_paths = {}
 	
 	def __init__(self, json_file):
@@ -46,7 +47,16 @@ class ObjBuilder:
 	def load_list(self, path, l):
 		self.my_types[path] = "list"
 		self.count_path(path)
-		self.my_nb_items[path] = len(l)
+		new_len = len(l)
+		if path in self.my_nb_items:
+			if new_len <> self.my_nb_items[path]:
+				nb = [new_len, self.my_nb_items[path]]
+				if path in self.my_nb_items_min:
+					nb.append(self.my_nb_items_min[path])
+				self.my_nb_items_min[path] = min(nb)
+				self.my_nb_items[path] = max(nb)
+		else:
+			self.my_nb_items[path] = len(l)
 		child_path = path + "[x]/"
 		res = self.get_list_type(l, path)
 		if res <> None:
@@ -83,6 +93,8 @@ class ObjBuilder:
 			
 			if obj.type == "list":
 				obj.nb_items = self.my_nb_items[key]
+				if key in self.my_nb_items_min:
+					obj.nb_items_min = self.my_nb_items_min[key]
 
 			obj.nb_times_it_exists = self.my_paths[key]
 				

@@ -6,4 +6,5 @@ json_file = "test.json"
 builder = ObjBuilder(json_file)
 obj = builder.get_obj()
 text_printer = ObjTextPrinter()
+#print "---------------------------------"
 print text_printer.render(obj, True)

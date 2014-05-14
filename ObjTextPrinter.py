@@ -12,7 +12,12 @@ class ObjTextPrinter:
 			if obj.type == "dict":
 				s += "a Dict composed of:"
 			elif obj.type == "list":
-				s += "a List composed of %d items like:"% obj.nb_items
+				s += "a List composed of "
+				if obj.nb_items_min <> None:
+					s += "%d to %d"% (obj.nb_items_min, obj.nb_items)
+				else:
+					s += "%d"% obj.nb_items
+				s += " items like:"
 			for child in obj.childs:
 				s += "\n"
 				s += self.render(child, with_values)
@@ -29,7 +34,6 @@ class ObjTextPrinter:
 					s += " - values:\n"
 					if obj.type == "unicode":
 						for val, nbval in obj.values.iteritems():
-#							print val
 							s += "%s\t%s [%d]\n"% (shift, val, nbval)
 					else:
 						for val, nbval in obj.values.iteritems():
