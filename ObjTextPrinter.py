@@ -26,17 +26,15 @@ class ObjTextPrinter:
 			if with_values:
 				if len(obj.values) == 1:
 					for val, nbval in obj.values.iteritems():
+						str_val = val if obj.type == "unicode" else str(val)
 						if nbval == 1:
-							s += " (value: %s)"% str(val)
+							s += " (value: '%s')"% str_val
 						else:
-							s += " (always: %s)"% str(val)
+							s += " (always: '%s')"% str_val
 				elif len(obj.values) > 1:
 					s += " - values:\n"
-					if obj.type == "unicode":
-						for val, nbval in obj.values.iteritems():
-							s += "%s\t%s [%d]\n"% (shift, val, nbval)
-					else:
-						for val, nbval in obj.values.iteritems():
-							s += "%s\t%s [%d]\n"% (shift, str(val), nbval)
+					for val, nbval in obj.values.iteritems():
+						str_val = val if obj.type == "unicode" else str(val)
+						s += "%s\t'%s' [%d]\n"% (shift, str_val, nbval)
 					s = s[:-1]
 		return s

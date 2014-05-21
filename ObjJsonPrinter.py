@@ -3,15 +3,10 @@ class ObjJsonPrinter:
 		json = {'name':obj.name, 'type':obj.type}
 
 		if with_values:
-			if len(obj.values) == 1:
-				for val, nbval in obj.values.iteritems():
-					if nbval == 1:
-						json['values'] = "%s"% str(val)
-					else:
-						json['values'] = "Always: %s"% str(val)
-			elif len(obj.values) > 1:
-				json['values'] = obj.values
-
+			values_summary = obj.get_values_summary()
+			if len(values_summary) > 0:
+				json['values'] = values_summary
+			
 		if obj.is_optional():
 			json['optional'] = "Optional: only %d value(s) over the %d items"% (obj.nb_times_it_exists, obj.nb_times_it_is_expected)
 			
@@ -23,7 +18,10 @@ class ObjJsonPrinter:
 				
 		if len(obj.children) > 0:
 			if len(obj.children) == 1 and obj.children[0].name == "[x]":
-				children_array = obj.children[0].children
+				if len(obj.children[0].children) > 0:
+					children_array = obj.children[0].children
+				else:
+					children_array = obj.children
 			else:
 				children_array = obj.children
 			children_json = []

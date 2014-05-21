@@ -11,7 +11,7 @@ obj = builder.get_obj()
 
 #print "---------------------------------"
 text_printer = ObjTextPrinter()
-#print text_printer.render(obj, False)
+print text_printer.render(obj, True)
 
 
 print "---------------------------------"
