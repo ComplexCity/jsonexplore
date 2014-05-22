@@ -38,24 +38,29 @@ class Obj:
 					counts[count] = 1
 			max_count = max(counts.keys())
 			if max_count <= 5:
-				sample = ""
-				values = self.values.keys()
-				for i in range(0, len(values)):
-					sample = values[i] if self.type == 'unicode' else str(values[i])
-					if len(sample) > 0:
-						break
 				if len(counts) == 1 and counts.keys()[0] == 1:
-					return "All different values (e.g. '%s')"% sample
+					return "All different values"
 				else:
 					min_count = min(counts.keys())
 					if min_count == max_count:
-						return "Almost all different values, each value appears %d times (e.g. '%s')"% (min_count, sample)
-					return "Almost all different values, each value appears from %d to %d times (e.g. '%s')"% (min_count, max_count, sample)
+						return "Almost all different values (each value appears %d times)"% min_count
+					return "Almost all different values (each value appears from %d to %d times)"% (min_count, max_count)
 			values = []
 			for value, count in self.values.iteritems():
 				values.append({'value':value, 'count':count})
 			return values
 		else:
 			return "Always empty"
+	
+	def get_sample_value(self):
+		if self.type <> 'list' and self.type <> 'dict' and len(self.values) > 1:
+			sample = ""
+			values = self.values.keys()
+			for i in range(0, len(values)):
+				sample = "'%s'"% values[i] if self.type == 'unicode' else "'%s'"% str(values[i])
+				if len(sample) > 0:
+					break
+			return sample
+		return None
 									
 						

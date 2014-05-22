@@ -6,6 +6,10 @@ class ObjJsonPrinter:
 			values_summary = obj.get_values_summary()
 			if len(values_summary) > 0:
 				json['values'] = values_summary
+			if values_summary is not list:
+				sample_value = obj.get_sample_value()
+				if sample_value <> None:
+					json['sample_value'] = sample_value
 			
 		if obj.is_optional():
 			json['optional'] = "Optional: only %d value(s) over the %d items"% (obj.nb_times_it_exists, obj.nb_times_it_is_expected)
