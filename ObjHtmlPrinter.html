@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title></title>
+		<style>
+.node circle {fill: #fff; stroke: #ccc; stroke-width: 1.5px;}
+.node text {font: 12px verdana;}
+.link {fill: none; stroke: #ccc;}
+div#toolTip {
+    position: absolute;			/* reference for measurement */
+    text-align: center;
+    pointer-events: none;		/* 'none' tells the mouse to ignore the rectangle */
+    background: #FFFFEF;
+ /*   width: 400px;
+    height: 165px;
+*/    padding: 10px;
+    border: 1px solid #D5D5D5;
+    font: 12px verdana;
+    position: absolute;
+    color: #333;
+    padding: 10px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.9);
+    color: #000;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    -moz-box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    border:1px solid rgba(200,200,200,0.85);
+    z-index: 1;
+}
+div#toolTipName {
+    font: 14px verdana;	
+}
+div#toolTipType {
+	padding: 10px;
+}
+div#toolTipOptional {
+	padding-bottom: 10px;
+}
+div#toolTipValues div {
+	font: 12px verdana;
+}
+		</style>
+	</head>
+	<body>
+
+<div id="toolTip" style="opacity:0;">
+	<div id="toolTipName"></div>
+	<div id="toolTipType"></div>
+	<div id="toolTipOptional"></div>
+	<div id="toolTipValues">
+		<p id="valuesSummary"></p>
+		<p id="sampleValue"></p>
+	</div>
+</div>
+
+<!-- load the d3.js library -->
+<script src="http://d3js.org/d3.v3.min.js"></script>
+		
+<script>
+var margin = {top:20, right:120, bottom:120, left:120},
+	width = 1280 - margin.left - margin.right,
+	height = 2000 - margin.top - margin.bottom;
+	
+var tree = d3.layout.tree()
+	.size([height, width])
+	.separation(function(a, b) {
+		if (a.parent == b.parent) {
+			return (a.depth == 1 ? 2 : 1 );
+		}
+		return 2;
+	});
+
+var svg = d3.select('body').append('svg')
+	.attr('width', width + margin.left + margin.right)
+	.attr('height', height + margin.top + margin.bottom)
+	.append('g')
+	.attr('transform', "translate(" + margin.left + "," + margin.top + ")");
+
+d3.json('res.json', function(error, json) {
+	root = json;
+	root.x0 = height/2;
+	root.y0 = 0;
+	
+	function clickAll(d) {
+		if (d.children) {
+			d.children.forEach(clickAll);
+			click(d);
+		}
+	}
+//	root.children.forEach(clickAll);
+
+	update(root);
+});
+	
+function click(d) {
+	if (d.children) {
+		d._children = d.children;
+		d.children = null;
+	} else {
+		d.children = d._children;
+		d._children = null;
+	}
+	update(d);
+}
+
+var toolTip = d3.select(document.getElementById('toolTip'));
+var toolTipName = d3.select(document.getElementById('toolTipName'));
+var toolTipType = d3.select(document.getElementById('toolTipType'));
+var toolTipOptional = d3.select(document.getElementById('toolTipOptional'));
+var toolTipValues = d3.select(document.getElementById('toolTipValues'));
+var valuesSummary = d3.select(document.getElementById('valuesSummary'));
+var sampleValue = d3.select(document.getElementById('sampleValue'));
+var barHeight = 20;
+
+function node_onMouseOver(d) {
+	if (d.type != 'list' && d.type != 'dict') {
+		toolTip.transition()
+			.duration(200)
+			.style('opacity', '1');
+		toolTip.style('left', (d3.event.pageX+15) + "px")
+			.style('top', (d3.event.pageY-15) + "px");
+
+		if (d3.select('#barchart') != null) {
+			d3.select('#barchart').remove()
+		}
+
+		toolTipName.text(d.name)
+		toolTipType.text("Type: " + d.type);
+		if (d.optional) {
+			toolTipOptional.text(d.optional);
+		}
+		if (Object.prototype.toString.call(d.values) == "[object Array]") {
+			var legendMaxSize = 0,
+				countMin = d.values[0].count;
+				countMax = 0;
+			for (var i=0; i < d.values.length; i++) {
+				var val = d.values[i];
+				value_size = val.value.toString().length
+				if (value_size > legendMaxSize) {
+					legendMaxSize = value_size;
+				}
+				if (val.count > countMax) {
+					countMax = val.count;
+				}
+				if (val.count < countMin) {
+					countMin = val.count;
+				}
+			}
+			var legendMaxSize = legendMaxSize * 10 + 10;
+			var scale = d3.scale.linear()
+				.domain([countMin, countMax])
+				.range([30, 150]);
+			
+			valuesSummary.text("Values:");
+			sampleValue.text("");
+			var chart = toolTipValues.append('svg')
+				.attr('id', 'barchart')
+				.attr('width', legendMaxSize + 150 + 10)
+				.attr('height', barHeight * d.values.length)
+				.append('g')
+				.attr('transform', "translate(0,0)");
+			
+			var gEnter = chart.selectAll('g')
+				.data(d.values)
+				.enter().append('g')
+				.attr('transform', function(d,i){ return "translate(0," + i * barHeight + ")"; });
+				
+			gEnter.append('text')
+				.attr('x', '0')
+				.attr('y', '9.5')
+				.attr('dy', '.35em')
+				.attr('width', legendMaxSize)
+				.attr('height', '19')
+				.text(function(v){ return "'" + v.value + "'"; });
+	
+			gEnter.append('rect')
+				.attr('x', legendMaxSize)
+				.attr('y', '0')
+				.attr('width', function(v){ return scale(v.count); })
+				.attr('height', '19')
+				.style('fill', 'steelblue');
+				
+			gEnter.append('text')
+				.attr('x', function(v){ return legendMaxSize + scale(v.count) - 3; })
+				.attr('y', '9.5')
+				.attr('dy', '.35em')
+				.attr('height', '19')
+				.attr('text-anchor', 'end')
+				.style('fill', 'white')
+				.text(function(v){ return v.count; });
+				
+//	http://www.d3noob.org/2014/02/making-bar-chart-in-d3js.html
+//	http://bost.ocks.org/mike/bar/
+
+		} else {
+			valuesSummary.text("Value: " + d.values);
+			if (d.sample_value) {
+				sampleValue.text("Sample: " + d.sample_value);
+			} else {
+				sampleValue.text("");
+			}
+		}
+	}
+}
+var colors = ["#bd0026","#fecc5c", "#fd8d3c", "#f03b20", "#B02D5D",
+        "#9B2C67", "#982B9A", "#692DA7", "#5725AA", "#4823AF",
+        "#d7b5d8","#dd1c77","#5A0C7A","#5A0C7A"];
+
+var diagonal = d3.svg.diagonal()
+	.projection(function(d) { return [d.y, d.x]; });
+
+var i = 0
+	
+function update(source) {
+	
+	// compute the new tree layout
+	var nodes = tree.nodes(root).reverse(),
+		links = tree.links(nodes);
+	
+	
+	var depthCounter = 0;
+	
+	// normalize for fixed-depth and set colors
+	nodes.forEach(function(d){
+		d.y = d.depth * 210;
+		if (d.depth == 1) {
+			d.linkColor = colors[(depthCounter % (colors.length-1))];
+			depthCounter ++;
+		}
+	});
+	
+	// set link colors
+	nodes.forEach(function(d){
+		var obj = d;
+		while ((obj.source && obj.source.depth > 1 ) || obj.depth > 1) {
+			obj = (obj.source) ? obj.source.parent : obj.parent;
+		}
+		d.linkColor = (obj.source) ? obj.source.linkColor : obj.linkColor;
+	});
+	
+	// declare the nodes
+	var node = svg.selectAll('g.node')
+		.data(nodes, function(d){ return d.id || (d.id = ++i); });
+		
+	// enter the nodes
+	var nodeEnter = node.enter().append('g')
+		.attr('class', 'node')
+		.attr('transform', function(d){ return "translate(" + source.y0 + "," + source.x0 + ")"})
+//		.attr('transform', function(d){ return "translate(" + d.y + "," + d.x + ")"})
+		.on('click', function(d){ click(d); });
+	
+	nodeEnter.append('circle')
+		.attr('r', function(d){ return (d.type == 'list' && d.list_size > 0) ? d.list_size * 2 : 2; })
+		.style('fill', function(d){ return d.source ? d.source.linkColor : d.linkColor })
+		.style('fill-opacity', '.8')
+		.style('stroke', function(d){ return d.source ? d.source.linkColor : d.linkColor })
+		.style('cursor', function(d){ return d.children || d._children ? 'pointer' : 'auto'; })
+		.on('mouseover', function(d){ node_onMouseOver(d); })
+		.on('mouseout', function(d){
+			toolTip.transition()
+				.duration(500)
+				.style('opacity', '0');
+		});
+	
+	nodeEnter.append('text')
+		.attr('x', function(d){ return d.children || d._children ? -13 : 13; })
+		.attr('dy', '.35em')
+		.attr('text-anchor', function(d){ return d.children || d._children ? 'end' : 'start'; })
+		.text(function(d){ return d.type == 'list' || d.type == 'dict' ? d.name : d.name; })
+		.style('fill-opacity', 1)
+		.on('mouseover', function(d){ node_onMouseOver(d); })
+		.on('mouseout', function(d){
+			toolTip.transition()
+				.duration(500)
+				.style('opacity', '0');
+		});
+	
+	// transition to exit nodes to the parent's new position
+	var nodeExit = node.exit().transition()
+		.duration(500)
+		.attr('transform', function(d){ return "translate(" + source.y + "," + source.x + ")"; })
+		.remove();
+	
+	nodeExit.select('circle')
+		.attr('r', 1e-6);
+	
+	nodeExit.select('text')
+		.style('fill-opacity', 1e-6);
+		
+	// transition to update nodes to their new position
+	var nodeUpdate = node.transition()
+		.duration(500)
+		.attr('transform', function(d){ return "translate(" + d.y + "," + d.x + ")"; });
+	
+	nodeUpdate.select('circle')
+		.attr('r', function(d){ return (d.type == 'list' && d.list_size > 0) ? d.list_size * 2 : 2; });
+	
+	nodeUpdate.select('text')
+		.style('fill-opacity', 1);
+		
+	// declare the links
+	var link = svg.selectAll('path.link')
+		.data(links, function(d){ return d.target.id; });
+	
+	// enter the links
+	link.enter().insert('path', 'g')
+		.attr('class', 'link')
+		.attr('d', diagonal)
+		.style('stroke', function(d){ return d.target.linkColor; })
+		.style('stroke-width', function(d){ return (d.target.type == 'list' && d.target.list_size > 0) ? d.target.list_size * 4 : 4; })
+		.style('stroke-opacity', '.2')
+		.style('stroke-linecap', 'round');
+	
+	// transition to exit the links	
+	var linkExit = link.exit().transition()
+		.duration(500)
+		.attr('d', diagonal)
+		.remove()
+	
+	// transition to update links
+	var linkUpdate = link.transition()
+		.duration(500)
+		.attr('d', diagonal);
+		
+	// stash the old positions for transition
+	nodes.forEach(function(d) {
+		d.x0 = d.x;
+		d.y0 = d.y;
+	});
+
+
+}
+</script>
+
+	</body>
+</html>
