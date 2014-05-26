@@ -114,91 +114,100 @@ var sampleValue = d3.select(document.getElementById('sampleValue'));
 var barHeight = 20;
 
 function node_onMouseOver(d) {
-	if (d.type != 'list' && d.type != 'dict') {
+	if (d.type != 'dict') {
 		toolTip.transition()
 			.duration(200)
 			.style('opacity', '1');
 		toolTip.style('left', (d3.event.pageX+15) + "px")
 			.style('top', (d3.event.pageY-15) + "px");
 
+		toolTipName.text(d.name);
+		
+		toolTipOptional.text("");
+		valuesSummary.text("");
+		sampleValue.text("");
 		if (d3.select('#barchart') != null) {
 			d3.select('#barchart').remove()
 		}
-
-		toolTipName.text(d.name)
-		toolTipType.text("Type: " + d.type);
-		if (d.optional) {
-			toolTipOptional.text(d.optional);
-		}
-		if (Object.prototype.toString.call(d.values) == "[object Array]") {
-			var legendMaxSize = 0,
-				countMin = d.values[0].count;
-				countMax = 0;
-			for (var i=0; i < d.values.length; i++) {
-				var val = d.values[i];
-				value_size = val.value.toString().length
-				if (value_size > legendMaxSize) {
-					legendMaxSize = value_size;
-				}
-				if (val.count > countMax) {
-					countMax = val.count;
-				}
-				if (val.count < countMin) {
-					countMin = val.count;
-				}
-			}
-			var legendMaxSize = legendMaxSize * 10 + 10;
-			var scale = d3.scale.linear()
-				.domain([countMin, countMax])
-				.range([30, 150]);
-			
-			valuesSummary.text("Values:");
-			sampleValue.text("");
-			var chart = toolTipValues.append('svg')
-				.attr('id', 'barchart')
-				.attr('width', legendMaxSize + 150 + 10)
-				.attr('height', barHeight * d.values.length)
-				.append('g')
-				.attr('transform', "translate(0,0)");
-			
-			var gEnter = chart.selectAll('g')
-				.data(d.values)
-				.enter().append('g')
-				.attr('transform', function(d,i){ return "translate(0," + i * barHeight + ")"; });
-				
-			gEnter.append('text')
-				.attr('x', '0')
-				.attr('y', '9.5')
-				.attr('dy', '.35em')
-				.attr('width', legendMaxSize)
-				.attr('height', '19')
-				.text(function(v){ return "'" + v.value + "'"; });
-	
-			gEnter.append('rect')
-				.attr('x', legendMaxSize)
-				.attr('y', '0')
-				.attr('width', function(v){ return scale(v.count); })
-				.attr('height', '19')
-				.style('fill', 'steelblue');
-				
-			gEnter.append('text')
-				.attr('x', function(v){ return legendMaxSize + scale(v.count) - 3; })
-				.attr('y', '9.5')
-				.attr('dy', '.35em')
-				.attr('height', '19')
-				.attr('text-anchor', 'end')
-				.style('fill', 'white')
-				.text(function(v){ return v.count; });
-				
-//	http://www.d3noob.org/2014/02/making-bar-chart-in-d3js.html
-//	http://bost.ocks.org/mike/bar/
-
-		} else {
-			valuesSummary.text("Value: " + d.values);
-			if (d.sample_value) {
-				sampleValue.text("Sample: " + d.sample_value);
+		
+		if (d.type == 'list') {
+			if (d.list_size < 2) {
+				toolTipType.text("Type: a list of " + d.list_size + " item");
 			} else {
-				sampleValue.text("");
+				toolTipType.text("Type: a list of " + d.list_size + " items");
+			}
+				
+		} else {
+			toolTipType.text("Type: " + d.type);
+			
+			if (d.optional) {
+				toolTipOptional.text(d.optional);
+			}
+
+			if (Object.prototype.toString.call(d.values) == "[object Array]") {
+				var legendMaxSize = 0,
+					countMin = d.values[0].count;
+					countMax = 0;
+				for (var i=0; i < d.values.length; i++) {
+					var val = d.values[i];
+					value_size = val.value.toString().length
+					if (value_size > legendMaxSize) {
+						legendMaxSize = value_size;
+					}
+					if (val.count > countMax) {
+						countMax = val.count;
+					}
+					if (val.count < countMin) {
+						countMin = val.count;
+					}
+				}
+				var legendMaxSize = legendMaxSize * 10 + 10;
+				var scale = d3.scale.linear()
+					.domain([countMin, countMax])
+					.range([30, 150]);
+			
+				valuesSummary.text("Values:");
+				var chart = toolTipValues.append('svg')
+					.attr('id', 'barchart')
+					.attr('width', legendMaxSize + 150 + 10)
+					.attr('height', barHeight * d.values.length)
+					.append('g')
+					.attr('transform', "translate(0,0)");
+			
+				var gEnter = chart.selectAll('g')
+					.data(d.values)
+					.enter().append('g')
+					.attr('transform', function(d,i){ return "translate(0," + i * barHeight + ")"; });
+				
+				gEnter.append('text')
+					.attr('x', '0')
+					.attr('y', '9.5')
+					.attr('dy', '.35em')
+					.attr('width', legendMaxSize)
+					.attr('height', '19')
+					.text(function(v){ return "'" + v.value + "'"; });
+	
+				gEnter.append('rect')
+					.attr('x', legendMaxSize)
+					.attr('y', '0')
+					.attr('width', function(v){ return scale(v.count); })
+					.attr('height', '19')
+					.style('fill', 'steelblue');
+				
+				gEnter.append('text')
+					.attr('x', function(v){ return legendMaxSize + scale(v.count) - 3; })
+					.attr('y', '9.5')
+					.attr('dy', '.35em')
+					.attr('height', '19')
+					.attr('text-anchor', 'end')
+					.style('fill', 'white')
+					.text(function(v){ return v.count; });
+
+			} else {
+				valuesSummary.text("Value: " + d.values);
+				if (d.sample_value) {
+					sampleValue.text("Sample: " + d.sample_value);
+				}
 			}
 		}
 	}
