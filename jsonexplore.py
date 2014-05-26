@@ -20,5 +20,5 @@ obj_json = json_printer.render(obj, True)
 f = open(obj_json_file, 'w')
 json.dump(obj_json, f)
 f.close()
-#print json.dumps(obj_json)
+print json.dumps(obj_json)
 
