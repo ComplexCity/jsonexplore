@@ -8,10 +8,8 @@ class ObjBuilder:
 	my_nb_items_min = {}
 	my_paths = {}
 	
-	def __init__(self, json_file):
-		f = open(json_file, 'r')
-		self.loaded_json = json.load(f)
-		f.close()
+	def __init__(self, loaded_json):
+		self.loaded_json = loaded_json
 		
 	def count_path(self, path):
 		if path in self.my_paths:
