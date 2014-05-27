@@ -1,39 +1,21 @@
 ##What these scripts do
 The purpose of the scripts in this repository is to explore an input JSON file to give insight into its content: its architecture, its fields and their different values.
 
-The main script is _jsonexplore.py_. It explores the given JSON file and build a tree of _Obj_ objects from it thanks to the help of an _ObjBuilder_. Then you can render the tree of _Obj_ using a printer. Tree printers are avalaible at this time (but it should be esay to couple it with any custom printer):
+The main script is _jsonexplore.py_. It explores the given JSON file and build a tree of _Obj_ objects from it thanks to the _ObjBuilder_. Then it renders the tree of _Obj_ using a printer. Tree basic printers are avalaible at this time:
 
--	The _ObjTextPrinter_ will simply output a string describing the tree
--	The _ObjJsonPrinter_ will output a JSON dictionary
--	These outputs can be printed on the console or in a file. In particular the JSON output can be used as an input for the _ObjHtmlPrinter_ to display a D3.js tree.
+-	The _ObjTextPrinter_ will simply output a string describing the tree, printed on console
+-	The _ObjJsonPrinter_ will output a JSON dictionary, written in the output _obj.json_ file
+-	The output JSON file can be used as the input of the _ObjHtmlPrinter_ to display a D3.js tree.
 
 ##The _Obj_ class
 An _Obj_ is created for each key of the given JSON dictionary.
-###Main properties
+
+###Properties
 -	**name**: the name of the field or "." for root
 
 -	**path**: the path of the field from root
 
 -	**level**: the distance from root
-
-For example:
-
-The input JSON file:
-
-	{
-		fieldA: valueA;
-		fieldB: {
-			fieldB1: valueB1;
-			fieldB2: valueB2;
-		}
-		fieldC: [valueC1, valueC2, valueC3]
-	}
-
-The _Obj_ instance for _FieldB2_ will be like:
-
--	name: "FieldB2"
--	path: "./fieldB/fieldB2/"
--	level: 2
 
 -	**type**: the type of its value(s) (e.g. dict, list, unicode, int…)
 
@@ -50,7 +32,7 @@ The _Obj_ instance for _FieldB2_ will be like:
 -	**children**: in case of a dictionary, it is the list of its keys each one reprensented by an _Obj_ instance
 
 ###Methods
--	**is_optional()**: if this field is part of an item in a list, it says if this field is sometimes missing in the items of the list, in other words if _nb_times_it exists_ is different from _nb_times_it_is_expected_. If it is optional, it returns _True_. It return _False_ otherwise.
+-	**is_optional()**: if the field is part of an item in a list, it says if this field is sometimes missing in the other items of the list, in other words if _nb_times_it exists_ is different from _nb_times_it_is_expected_. If it is optional, it returns _True_. Otherwise, it return _False_.
 
 -	**(string) get_values_summary()**: depending on the **values** property, it returns a string or a list offering a more comprehensible version of the **values** dictionary :
 	-	"'_value_'"	if there is only one value, used only once
@@ -68,10 +50,10 @@ The _Obj_ instance for _FieldB2_ will be like:
 	This method is used by the _ObjJsonPrinter_, and consequently by the _ObjHtmlPrinter_ to display the values.
 	
 
--	**get_sample_value()**: it returns the first value it founds that is not an empty string or _None_ if not found.
+-	**get_sample_value()**: it returns the first value that is not an empty string or _None_ if not found.
 
-##_ObjTextPrinter_
-Example:
+##The _ObjTextPrinter_
+Example of output:
 
 	|- .: a Dict composed of:
 		|- statuses: a List composed of 10 items like:
@@ -124,8 +106,8 @@ Example:
 						'上海 闸北区' [1]
 		|- total_number: int (value: '129751')
 	
-##_ObjJsonPrinter_
-Example:
+##The _ObjJsonPrinter_
+Example of output:
 
 	{	"type":"dict",
 		"name":".",
@@ -239,7 +221,7 @@ Example:
 		]
 	}
 	
-##Example with _ObjHtmlPrinter_
+##The _ObjHtmlPrinter_
 You can see a working example [here](http://catwomanlair.net/complexcity/).
 
 This visualisation is based on [D3js](http://d3js.org) and inspired by others great work and howtos:
