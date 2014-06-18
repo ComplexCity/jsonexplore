@@ -1,6 +1,7 @@
 from ObjBuilder import ObjBuilder
 from ObjTextPrinter import ObjTextPrinter
 from ObjJsonPrinter import ObjJsonPrinter
+from ObjJsPrinter import ObjJsPrinter
 from sys import argv
 import json
 
@@ -12,6 +13,7 @@ use_string = """Use: python jsonexplore.py input_json_file [no_value]
 		python jsonexplore.py my_file.json no_value"""
 
 output_json_file = "obj.json"
+output_js_file = "obj.js"
 
 class InitError(Exception):
 	pass
@@ -40,6 +42,12 @@ try:
 	json.dump(obj_json, f)
 	f.close()
 	#print json.dumps(obj_json)
+	
+	js_printer = ObjJsPrinter(input_json_file)
+	obj_js = js_printer.render(obj, with_values)
+	f = open(output_js_file, 'w')
+	f.write(obj_js)
+	f.close()
 	
 except IndexError:
 	print "The parameter input_json_file is missing"

@@ -1,6 +1,15 @@
 class ObjJsonPrinter:
 	def render(self, obj, with_values):
-		json = {'name':obj.name, 'type':obj.type}
+		json = {'type':obj.type, 'level':obj.level}
+		
+		if obj.name == '[x]':
+			json['name'] = '?'
+		else:
+			json['name'] = obj.name
+		if obj.type == "dict":
+			json['name'] = "{ " + json['name'] + " }"
+		elif obj.type == "list":
+			json['name'] = "[ " + json['name'] + " ]"
 
 		if with_values:
 			values_summary = obj.get_values_summary()
@@ -21,18 +30,9 @@ class ObjJsonPrinter:
 				json['list_size'] = "%d"% obj.nb_items
 				
 		if len(obj.children) > 0:
-			if len(obj.children) == 1 and obj.children[0].name == "[x]":
-				if len(obj.children[0].children) > 0:
-					children_array = obj.children[0].children
-				else:
-					children_array = obj.children
-			else:
-				children_array = obj.children
 			children_json = []
-			for child in children_array:
-				child_json = self.render(child, with_values)
-				if child_json <> None:
-					children_json.append(child_json)
+			for child in obj.children:
+				children_json.append(self.render(child, with_values))
 			json['children'] = children_json
 		
 		return json
